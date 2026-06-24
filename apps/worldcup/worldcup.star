@@ -254,22 +254,36 @@ def _message(text):
         ),
     )
 
-# Static list of the 48 FIFA World Cup 2026 team abbreviations (ESPN codes),
-# used to populate the optional "favorite team" dropdown.
-WC_TEAMS = [
-    "ARG", "AUS", "AUT", "BEL", "BRA", "CAN", "CIV", "COL", "CPV", "CRO",
-    "ECU", "EGY", "ENG", "ESP", "FRA", "GER", "GHA", "HAI", "IRN", "ITA",
-    "JOR", "JPN", "KOR", "KSA", "MAR", "MEX", "NED", "NGA", "NOR", "NZL",
-    "PAN", "PAR", "POR", "QAT", "RSA", "SCO", "SEN", "SUI", "TUN", "URU",
-    "USA", "UZB", "WAL",
-]
+def search_teams(pattern):
+    """Typeahead source for the favorite-team field.
+
+    Reads team names straight from the current scoreboard so the stored value is
+    always a real ESPN abbreviation (which is what _order_matches compares
+    against). This avoids maintaining a hand-written team list that could drift
+    from ESPN's codes or omit teams.
+    """
+    resp = http.get(ESPN_URL, ttl_seconds = SCORE_TTL)
+    if resp.status_code != 200:
+        return []
+
+    seen = {}
+    for event in resp.json().get("events", []):
+        for comp in event.get("competitions", []):
+            for c in comp.get("competitors", []):
+                team = c.get("team", {})
+                abbr = team.get("abbreviation", "")
+                if abbr:
+                    seen[abbr] = team.get("displayName") or team.get("shortDisplayName") or abbr
+
+    pattern = pattern.lower()
+    options = []
+    for abbr in sorted(seen):
+        name = seen[abbr]
+        if pattern == "" or pattern in name.lower() or pattern in abbr.lower():
+            options.append(schema.Option(display = "%s (%s)" % (name, abbr), value = abbr))
+    return options
 
 def get_schema():
-    team_options = [schema.Option(display = "(none)", value = "")] + [
-        schema.Option(display = abbr, value = abbr)
-        for abbr in WC_TEAMS
-    ]
-
     return schema.Schema(
         version = "1",
         fields = [
@@ -291,13 +305,12 @@ def get_schema():
                     schema.Option(display = "12-hour (AM/PM)", value = "12h"),
                 ],
             ),
-            schema.Dropdown(
+            schema.Typeahead(
                 id = "team",
                 name = "Favorite team",
-                desc = "Pull this team's match to the front of the rotation.",
+                desc = "Pull this team's current match to the front of the rotation.",
                 icon = "star",
-                default = "",
-                options = team_options,
+                handler = search_teams,
             ),
             schema.Location(
                 id = "timezone",
