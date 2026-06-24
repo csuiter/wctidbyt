@@ -1,0 +1,10 @@
+---
+id: worldcup
+name: World Cup
+summary: Live World Cup scores
+desc: >-
+  Live FIFA World Cup scores from ESPN. Shows in-progress matches first,
+  cycling through all of them, then upcoming matches and recent finals, each
+  with the two teams' logos, the score, and a live clock or kickoff time.
+  Configurable favorite team, timezone, and 12/24-hour kickoff times.
+author: csuiter

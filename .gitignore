@@ -1,0 +1,7 @@
+# Pixlet render output
+*.webp
+*.gif
+
+# Editor / OS cruft
+.DS_Store
+*.swp
