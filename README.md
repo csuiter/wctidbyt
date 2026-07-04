@@ -52,17 +52,30 @@ pixlet serve apps/worldcup/worldcup.star
 Open <http://localhost:8080> to see a live render. The config options (below) appear in
 the serve UI so you can try them without editing code.
 
-## Render & push to a device
+## Push to your device (quick start)
+
+Grab your API key and device ID from the Tidbyt mobile app (your device →
+Settings → **Get API Key**), then:
+
+```sh
+git clone https://github.com/csuiter/wctidbyt.git && cd wctidbyt
+export TIDBYT_TOKEN='<your API key>'
+./push.sh --loop
+```
+
+`push.sh` renders the app and pushes it to the device, then re-renders every
+60 seconds so live scores stay fresh (matching the app's 60s ESPN cache). Run
+it without `--loop` for a single push, or pass a device ID as the first
+argument to target a different device (the default is set at the top of the
+script). Stop the loop with Ctrl-C; the app stays installed on the device with
+its last-pushed scores.
+
+Manual equivalent, if you prefer:
 
 ```sh
 pixlet render apps/worldcup/worldcup.star
-pixlet push <DEVICE_ID> worldcup.webp        # one-off push
-# or install it so the device rotates it automatically:
-pixlet push --installation-id worldcup <DEVICE_ID> worldcup.webp
+pixlet push --api-token "$TIDBYT_TOKEN" --installation-id worldcup <DEVICE_ID> worldcup.webp
 ```
-
-Find your `<DEVICE_ID>` and API token via the Tidbyt mobile app
-(Settings → General → Get API Key / Device ID), or with `pixlet devices`.
 
 ## Configuration
 
